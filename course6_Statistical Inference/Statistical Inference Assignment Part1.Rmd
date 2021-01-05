@@ -1,0 +1,94 @@
+---
+title: "Exponential Simulations"
+author: "Sara Rafi"
+date: "Saturday, May 23, 2015"
+output: html_document
+---
+
+This report investigates the distribution of averages of 40 exponential(0.2) over 1000 simulations.
+
+
+##1. Show the sample mean and compare it to the theoretical mean of the distribution.
+
+The first step is to create a dataset with 1000 rows and 40 columns. Each row has 40 exponentials for a single simulation.
+
+```{r}
+
+set.seed(1)
+
+n<-40
+numsim<-1000
+lambda<-0.2
+
+dataset<-matrix(rexp(n*numsim,lambda),numsim)
+
+dim(dataset)
+
+```
+
+The histogram below show the distibutuon of the means. The blue line shows the sammple mean.
+
+```{r}
+
+
+RowM <- rowMeans(dataset)
+
+mean<-as.numeric(mean(RowM))
+
+hist(RowM, col=rainbow(n))
+
+abline(v = mean, col = "green", lwd = 2, label="data mean")
+
+````
+
+```{r}
+meanT<-as.numeric(1/0.2)
+mean
+meanT
+```
+
+The sample mean is 5 and the theory mean is 4.99. The difference between the means is very small.
+
+##2. Show how variable the sample is (via variance) and compare it to the theoretical variance of the distribution.
+
+```{r}
+
+std<-sd(RowM)
+var<-var(RowM)
+
+var
+
+stdT<-((1/lambda) * (1/sqrt(n)))
+varT<-stdT^2
+
+varT
+
+```
+
+The sample mean is 0.62, where as the theoretical mean is 0.63. Again, there is very little difference between the two.
+
+
+
+
+##3. Show that the distribution is approximately normal.
+
+The plot below show the distribution of the sample. The green vertical line shows the sample mean. This line almost overlaps the vertical blue line which is the value of the theory mean. 
+
+Similarly, the green curve is the curve obtained by ploting the sample mean and standard deviarion. The blue curve is plotted using the theoretical mean and standard deviation.
+
+```{r}
+library(ggplot2)
+#convert to dataframe
+RowMean<-apply(dataset,1,mean)
+
+dfRowM<-data.frame(RowM)
+
+nd<-ggplot(dfRowM,aes(x=RowM))
+nd<-nd+geom_histogram(binwidth = lambda,fill="orange",color="black",aes(y = ..density..))
+nd<-nd + labs(title="Density of 40 Numbers from Exponential Distribution", x="Mean of 40 Selections", y="Density")
+nd<-nd+geom_vline(xintercept=mean, size=1.5,colour="green", linetype=1, show_guide=TRUE)
+nd<-nd + stat_function(fun=dnorm,args=list(mean=mean, sd=std),color = "green", size = 1.5)
+nd<-nd+geom_vline(xintercept=meanT, size=1.0,colour="blue", linetype=1, show_guide=TRUE)
+nd<-nd + stat_function(fun=dnorm,args=list(mean=meanT, sd=stdT),linetype=1,color = "blue", size = 1.0)
+nd
+```

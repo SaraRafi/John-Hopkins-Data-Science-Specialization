@@ -1,0 +1,89 @@
+---
+title: "The Effect of Vitamin C on Tooth Growth in Guinea Pigs"
+author: "Sara Rafi"
+date: "Saturday, May 23, 2015"
+output: html_document
+---
+
+##1. Load the ToothGrowth data and perform some basic exploratory data analyses 
+
+
+```{r}
+
+library(datasets)
+library(ggplot2)
+
+data(ToothGrowth)
+
+dim(ToothGrowth)
+names(ToothGrowth)
+
+str(ToothGrowth)
+
+ggplot(data=ToothGrowth, aes(x=len, fill=supp)) +geom_bar(stat="bin")+ scale_fill_brewer(palette="Set3")
+
+
+g <- ggplot(ToothGrowth, aes(dose, len))
+g + geom_point(aes(color = supp), size = 4, alpha = 1/2) + labs(title = "Tooth Growth") + labs(x ="Dose", y="Tooth Length")# + scale_colour_hue(palette="YlGn")
+
+```
+
+##2. Provide a basic summary of the data.
+
+
+```{r}
+head(ToothGrowth)
+
+summary(ToothGrowth)
+
+table(ToothGrowth$dose, ToothGrowth$supp)
+
+```
+
+
+##3. Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. 
+
+```{r}
+#t test for difference in length due to supplement type
+#Assuming unequal variances
+
+t.test(len ~ supp, data = ToothGrowth)
+
+```
+
+The result of the t test has a p value of 0.06 and the confidence interval contains 0. This means that  we cannot reject the null hypothese, thus, the supplement type does not have an impact on the length of teeth.
+
+```{r}
+#difference in length due to different types of dose
+#creating groups by dose level
+
+ToothGrowth_0.5_1.0 <- subset (ToothGrowth, dose %in% c(0.5, 1.0)) 
+ToothGrowth_0.5_2.0 <- subset (ToothGrowth, dose %in% c(0.5, 2.0)) 
+ToothGrowth_1.0_2.0 <- subset (ToothGrowth, dose %in% c(1.0, 2.0)) 
+
+#testing for difference in length due to dose value
+#assuming equal variances for all three
+
+t.test(len ~ dose, data = ToothGrowth_0.5_1.0)
+t.test(len ~ dose, data = ToothGrowth_0.5_2.0)
+t.test(len ~ dose, data = ToothGrowth_1.0_2.0)
+````
+
+
+The p-value for all three tests are very small. Aslo, the confidence intervals for all three does not contain 0. As a result we reject the null hypothesis. This means that the dose value has an effect on teeth growth.
+
+##4. State your conclusions and the assumptions needed for your conclusions. 
+
+**Conclusion**
+From the t tests it can be concluded that the type of supplement has no impact on the lenth of teeth, where as incearing value of dose leads to an increased length of teeth.
+
+**Assumptions**
+
+1. Population variances are equal
+
+2. The sample of pigs selectcted were salected randomly and represent the population
+
+3. The samples are independent- one sample was not given more than one supplement or a different dose level
+
+
+
