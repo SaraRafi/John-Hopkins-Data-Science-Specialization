@@ -1,0 +1,139 @@
+---
+title: "Regression Models Assignment"
+author: "Sara Rafi"
+output: pdf_document
+---
+
+##Executive Summary
+
+The motot trance car roads data comprises of fuel compsumtion data along with 10 aspects of automobile design and performance. The sample consists of data for 32 autmobiles.
+
+This report attempts to answer the following questions:
+
+1. Is an automatic or manual transmission better for MPG
+
+2. Quantify the MPG difference between automatic and manual transmissions
+
+Preliminary data exploration shows an increase in MPG for autmobiles with automotic transmission. However, a regression analysis fails to provide evidence of such a relation.
+
+##Data 
+
+The dataframe comroses fuel consumption and ten aspects of automobile design performace for thirtytwo automobiles. The dataframes consists of the the following variables.
+
+```{r}
+names(mtcars)
+```
+
+The characteristics of these variables are:
+
+```{r}
+str(mtcars)
+
+```
+###Coverting variables to factors
+
+```{r}
+mtcars$am     <- as.factor(mtcars$am)
+mtcars$cyl    <- as.factor(mtcars$cyl)
+mtcars$vs     <- as.factor(mtcars$vs)
+mtcars$gear   <- as.factor(mtcars$gear)
+
+```
+###Exploratory Analysis
+
+As shown in Figure 1 in the Appendix, plotting the MPG for the manual vs the automatic transmission cars shows that there is a difference in the MPG for the teo transmissions type. The  with automatic models have a higher MPG when compared to automatic cars.
+
+##Model selection
+
+The model selection is based on the Akaine Information Criteria(AIC). AIC selects a models a model by estimating and comparing the quality of each model in comparison to other models. The AIC value of a model is calculated by the followinf formula:
+
+$$AIC=2k- 2ln(L)$$
+
+In this formula *k is the number of estimated paramters in the model and *L is the maximised value of the likelihood function for the model. The preferred model is the one with the minimum AIC value.
+
+This method takes in account for the possibility if interaction between different parameters.
+
+For our analysis the AIC stages are as follows:
+Our final model, with the lowes AIC is:
+
+```{r}
+fit1 <- lm(mpg ~ 1, data=mtcars)  # minimum possible regression model
+fit <- step(fit1, direction="both", #adding parameters stepwise
+            scope=(~ am:(cyl+disp+hp+drat+wt+qsec+vs+gear+carb))) 
+```
+
+```{r}
+summary(fit)
+```
+The p-values also indicate the signicance of the variables. 
+
+##Interpretation of Model
+
+The final model can be written as:
+
+  $$Y=\beta_0+\beta_1x_{weight}+1(am)(\beta_2-\beta_1)x_{weight}+\beta_3x_{qsec}+1(am)(\beta_4-\beta_3)x_{qsec}+e$$
+
+where: am= 1 for automatic transmission
+       am= 0 for manual transmission
+
+The coefficients corresponding to the smmary table above are:
+
+$\beta_0=intercept$
+
+$\beta_1=am0:wt$ 
+
+$\beta_2=am1:wt$  
+
+$\beta_3=am0:qsec$ 
+
+$\beta_4=am1:qsec$ 
+
+##Residual Analysis 
+
+###Graphical residual analysis
+
+We assume that the residuals have constant variance and follow a normal distrubution. From Figure 2(see Appendix), we observer the following:
+
+1. The residuals are scattered randomly around zero.
+
+2. The residuals roughly form a "horizontal band" around the 0 line. This suggests that the variances of the error terms are equal.
+
+3. The quantiles for the residuals fall close to the theoretical normal quantiles in the Q-Q plot. 
+
+##Conclusion
+
+Comparing the model for automatic and manual transmission we get: 
+
+$$(-2.9233)x_{weight}+0.6126x_{qsec}$$
+
+The above expression summarises the difference between automatic and manual transmission.  
+
+In order for automatic to be better than manual the expression would have a value greater than 0. Thus, we can write it as following:
+
+$$(-2.9233)x_{weight}+0.6126x_{qsec}>0$$                    
+
+```{r}
+library(plyr)
+
+x<-ddply(mtcars, .(am), summarize,  wt_mean=mean(wt), qsec_mean=mean(qsec))
+
+test_am<-(-2.9233)*x[1,2]+0.6126*x[1,3]
+test_mu<-(-2.9233)*x[2,2]+0.6126*x[2,3]
+test_am
+test_mu
+```
+When we use our data to test the above expression, we get a positive result for both munual and automatic transmission. Thus, we are unable to find evidence that automatic cars are better for MPG than manual.
+
+##Appendix
+
+###Figure 1
+```{r}
+boxplot(mpg~am,data=mtcars,main="Averages",varwidth=TRUE, col=c("green","blue"),
+        names=c("Manual","Automatic")) 
+```
+###Figure 2
+```{r}
+par(mfrow = c(1,2),mar = c(2, 2, 3, 2))
+plot(fit, which=1)
+plot(fit, which=2)
+```
